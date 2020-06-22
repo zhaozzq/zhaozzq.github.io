@@ -1,133 +1,76 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Input 测试</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>测试</title>
+    <link rel="stylesheet" href="https://www.layuicdn.com/layui-v2.5.6/css/layui.css">
 </head>
-
 <style>
-    div {
-        padding: 12px
+    .container {
+        padding: 20px;
+        padding-top: 40px;
     }
-    label {
-        padding-right: 12px
+
+    #Items {
+        padding-top: 30px;
     }
-    audio {
-        padding-top: 12px
+
+    .container-btn {
+        padding: 20px;
     }
 </style>
 
 <body>
-    <div>
-        <label>照相机</label>
-        <input type="file" id='image' accept="image/*" capture='camera'>
+    <div class="container">
+        <div class="input-block">
+            <input type="text" name="title" required lay-verify="required" placeholder="输入测试链接" autocomplete="off"
+                class="layui-input">
+            <div class="container-btn">
+                <button type="button" class="layui-btn layui-btn-fluid layui-bg-blue"
+                    onclick="openTestPage()">Go</button>
+            </div>
+<!--             <hr />
+            <div id="Items">
+                <div class="layui-row layui-col-space10">
+                    <div class="layui-col-xs6" v-for="item in urls">
+                        <button type="button" class="layui-btn layui-btn-fluid layui-bg-blue"
+                            @click="open(item.url,item.name)">{{item.name}}</button>
+                    </div>
+                </div>
+            </div> -->
+        </div>
     </div>
-    <div>
-        <label>摄像机</label>
-        <input type="file" id='video' accept="video/*" capture='camcorder'>
-    </div>
-    <div>
-        <label>麦克风(不可用)</label>
-        <!-- 在iOS应用内闪退 -->
-        <input type="file" id='audio' accept="audio/*" capture="microphone">
-    </div>
-
-    <div id='recoder'>
-        <label>录音</label>
-        <button type="button" onclick="captureAudio('10', '1')">开始</button>
-        <button type="button" onclick="stopCaptureAudio(false)">结束</button>
-        <button type="button" onclick="stopCaptureAudio(true)">取消</button>
-    </div>
-
-    <div id='player'>
-        <label>播放录音</label>
-        <button type="button" onclick="window.webkit.messageHandlers.play.postMessage('')">Start</button>
-        <button type="button" onclick="window.webkit.messageHandlers.stopPlay.postMessage('')">Stop</button>
-        <audio controls></audio>
-    </div>
-
-    <div>
-        <label>加载测试页</label>
-        <textarea placeholder="输入测试链接">https://baidu.com</textarea>
-        <button type="button" onclick="goNewPage()">Go</button>
-    </div>
-    <div>
-        <label id='userAgrent'>userAgrent</label>
-        <!-- <label id='newUserAgrent'>newUserAgrent</label> -->
-        <label id='url'>url</label>
-    </div>
+    <script src="https://www.layuicdn.com/layui-v2.5.6/layui.js"></script>
+<!--     <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
     <script>
-        // 在iOS中 加了capture，就只能调用摄像头不能调用相册
-        var image = document.querySelector('#image');
-        var video = document.querySelector('#video');
-        if (isiOS()) {
-            image.removeAttribute("capture");
-            video.removeAttribute("capture");
-        }
-
-        var uaLabel = document.querySelector('#userAgrent');
-        uaLabel.innerText = navigator.userAgent;
-        var urlLabel = document.querySelector('#url');
-        urlLabel.innerText = window.location;
-
-        function captureAudio(maxSecond, minSecond) {
-            window.webkit.messageHandlers.captureAudio.postMessage({
-                "maxSecond": maxSecond,
-                "minSecond": minSecond
-            });
-        }
-
-        function stopCaptureAudio(cancel) {
-            window.webkit.messageHandlers.stopCaptureAudio.postMessage(cancel ? "1" : "0");
-        }
-
-        function captureAudioResult(code, data) {
-            console.log(code);
-            if (code === '0' && data) {
-                console.log(data);
-                var base64String = decodeURIComponent(data);
-                //var decodedData = window.atob(base64String);
-                document.querySelector("audio").setAttribute("src", "data:audio/aac;base64," + base64String);
-            }
-        }
-
-        function goNewPage() {
-            //window.location.href = document.querySelector("textarea").value;
-
-            if (isiOS) {
+        function pushWindow(url, title) {
+            if (isIOS()) {
                 window.webkit.messageHandlers.pushWindow.postMessage({
-                "url": document.querySelector("textarea").value,
-                "title": "Test"
-            });
+                    "url": url,
+                    "title": title
+                });
             } else {
-                ms.pushWindow(document.querySelector("textarea").value, "Test")
+                //window.location.href = url;
+                ms.pushWindow(document.querySelector("textarea").value, title)
             }
-
         }
-
-        function readFile(file, onLoadCallback) {
-            var reader = new FileReader();
-            reader.onload = onLoadCallback;
-            reader.readAsDataURL(file);
+        function openTestPage() {
+            let url = document.querySelector("input").value;
+            if (url) {
+                pushWindow(url, 'Test');
+            } else {
+                layui.use('layer', function () {
+                    var layer = layui.layer;
+                    layer.msg('请输入测试链接');
+                });
+            }
         }
-
-        function isiOS() {
-            return (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream)
-        }
-
-        function isiMaker() {
-            return (/iMaker/.test(userAgent) && !window.MSStream)
-        }
-        //setTimeOut("newUA()",3000)
-
-        function newUA() {
-            var uaLabel = document.querySelector('#newUserAgrent');
-            uaLabel.innerText = navigator.userAgent;
+        function isIOS() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent)
         }
     </script>
-
 </body>
 
 </html>
